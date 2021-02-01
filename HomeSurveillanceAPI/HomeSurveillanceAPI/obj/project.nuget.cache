@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "dgSpecHash": "gchj3+YwwJXsVFcidP6xD9FDHmwRbG6XF42zxVllaEWJUqRjWg0wQO4XO+EWWxH5gPcTuuBYudWPXN6FXllVZg==",
+  "success": true,
+  "projectFilePath": "C:\\Users\\Peter\\Desktop\\H6\\Svendeprøve\\Projekt\\HomeSurveillanceAPI\\HomeSurveillanceAPI\\HomeSurveillanceAPI.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\Peter\\.nuget\\packages\\microsoft.visualstudio.azure.containers.tools.targets\\1.10.9\\microsoft.visualstudio.azure.containers.tools.targets.1.10.9.nupkg.sha512"
+  ],
+  "logs": []
+}
