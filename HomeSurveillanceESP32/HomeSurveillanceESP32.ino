@@ -5,7 +5,7 @@
 #include <Ticker.h>
 
 #define EEPROM_SIZE 2
-#define SERVER_IP "192.168.0.105"
+#define SERVER_IP "192.168.0.106"
 #define SERVER_PORT "5000"
 
 //IO Ports

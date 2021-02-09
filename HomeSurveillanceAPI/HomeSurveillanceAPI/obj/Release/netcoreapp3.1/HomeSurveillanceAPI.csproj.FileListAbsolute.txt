@@ -157,3 +157,5 @@ C:\Users\Peter\Desktop\H6\Svendeprøve\Projekt\HomeSurveillanceAPI\HomeSurveilla
 C:\Users\Peter\Desktop\H6\Svendeprøve\Projekt\HomeSurveillanceAPI\HomeSurveillanceAPI\obj\Release\netcoreapp3.1\HomeSurveillanceAPI.dll
 C:\Users\Peter\Desktop\H6\Svendeprøve\Projekt\HomeSurveillanceAPI\HomeSurveillanceAPI\obj\Release\netcoreapp3.1\HomeSurveillanceAPI.pdb
 C:\Users\Peter\Desktop\H6\Svendeprøve\Projekt\HomeSurveillanceAPI\HomeSurveillanceAPI\obj\Release\netcoreapp3.1\HomeSurveillanceAPI.genruntimeconfig.cache
+C:\Users\Peter\Desktop\H6\Svendeprøve\Projekt\HomeSurveillanceAPI\HomeSurveillanceAPI\obj\Release\netcoreapp3.1\HomeSurveillanceAPI.csprojAssemblyReference.cache
+C:\Users\Peter\Desktop\H6\Svendeprøve\Projekt\HomeSurveillanceAPI\HomeSurveillanceAPI\bin\Release\netcoreapp3.1\Microsoft.AspNetCore.Authentication.JwtBearer.dll

@@ -7,16 +7,18 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using HomeSurveillanceAPI;
 using HomeSurveillanceAPI.Models;
+using Microsoft.AspNetCore.Authorization;
 
 namespace HomeSurveillanceAPI.Controllers
 {
-    [Route("[controller]")]
     [ApiController]
-    public class MicroControllersController : ControllerBase
+    [Authorize]
+    [Route("[controller]")]
+    public class MicroControllerController : ControllerBase
     {
         private readonly HomeSurveillanceDBContext _context;
 
-        public MicroControllersController(HomeSurveillanceDBContext context)
+        public MicroControllerController(HomeSurveillanceDBContext context)
         {
             _context = context;
         }

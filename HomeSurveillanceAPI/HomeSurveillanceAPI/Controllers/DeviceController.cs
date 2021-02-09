@@ -12,11 +12,11 @@ namespace HomeSurveillanceAPI.Controllers
 {
     [Route("[controller]")]
     [ApiController]
-    public class DevicesController : ControllerBase
+    public class DeviceController : ControllerBase
     {
         private readonly HomeSurveillanceDBContext _context;
 
-        public DevicesController(HomeSurveillanceDBContext context)
+        public DeviceController(HomeSurveillanceDBContext context)
         {
             _context = context;
         }

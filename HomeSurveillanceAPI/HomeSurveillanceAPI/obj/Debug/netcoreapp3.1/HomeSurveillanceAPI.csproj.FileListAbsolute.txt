@@ -157,3 +157,5 @@ C:\Users\Peter\Desktop\H6\Svendeprøve\Projekt\HomeSurveillanceAPI\HomeSurveilla
 C:\Users\Peter\Desktop\H6\Svendeprøve\Projekt\HomeSurveillanceAPI\HomeSurveillanceAPI\bin\Debug\netcoreapp3.1\Microsoft.Extensions.Configuration.dll
 C:\Users\Peter\Desktop\H6\Svendeprøve\Projekt\HomeSurveillanceAPI\HomeSurveillanceAPI\bin\Debug\netcoreapp3.1\Microsoft.Extensions.Configuration.Binder.dll
 C:\Users\Peter\Desktop\H6\Svendeprøve\Projekt\HomeSurveillanceAPI\HomeSurveillanceAPI\bin\Debug\netcoreapp3.1\Pomelo.JsonObject.dll
+C:\Users\Peter\Desktop\H6\Svendeprøve\Projekt\HomeSurveillanceAPI\HomeSurveillanceAPI\bin\Debug\netcoreapp3.1\Microsoft.AspNetCore.Authentication.JwtBearer.dll
+C:\Users\Peter\Desktop\H6\Svendeprøve\Projekt\HomeSurveillanceAPI\HomeSurveillanceAPI\obj\Debug\netcoreapp3.1\HomeSurveillanceAPI.csprojAssemblyReference.cache

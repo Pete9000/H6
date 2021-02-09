@@ -7,11 +7,9 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Pomelo.EntityFrameworkCore.MySql;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using HomeSurveillanceAPI.Middleware;
+using HomeSurveillanceAPI.Services;
+
 
 
 namespace HomeSurveillanceAPI
@@ -28,10 +26,11 @@ namespace HomeSurveillanceAPI
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            string mySqlConnectionStr = Configuration.GetConnectionString("RemoteConnection");
-            services.AddDbContextPool<HomeSurveillanceDBContext>(o => o.UseMySql(mySqlConnectionStr));
-            services.AddControllers().AddNewtonsoftJson(options =>
-                 options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore);
+            services.AddTokenAuthentication(Configuration);
+            //string mySqlConnectionStr = Configuration.GetConnectionString("RemoteConnection");
+            services.AddDbContextPool<HomeSurveillanceDBContext>(o => o.UseMySql(Configuration.GetConnectionString("RemoteConnection")));
+            services.AddControllers().AddNewtonsoftJson(op => op.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore);
+            
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -46,6 +45,7 @@ namespace HomeSurveillanceAPI
 
             app.UseRouting();
 
+            app.UseAuthentication();
             app.UseAuthorization();
 
             app.UseEndpoints(endpoints =>
