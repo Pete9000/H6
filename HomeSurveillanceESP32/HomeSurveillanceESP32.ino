@@ -1,4 +1,5 @@
 #include <WiFiManager.h> // Tool for selecting available networks.
+#include <WiFi.h>
 #include <HTTPClient.h>
 #include <ArduinoJson.h>
 #include <EEPROM.h>
@@ -6,7 +7,29 @@
 
 #define EEPROM_SIZE 2
 #define SERVER_IP "192.168.0.106"
-#define SERVER_PORT "5000"
+#define SERVER_PORT "49165"
+
+
+const char* sslCert = \
+                      "-----BEGIN CERTIFICATE-----\n" \
+                      "MIIDDTCCAfWgAwIBAgIJAPhfaYN9vYnxMA0GCSqGSIb3DQEBCwUAMBQxEjAQBgNV\n" \
+                      "BAMTCWxvY2FsaG9zdDAeFw0yMTAxMjEwOTE5NDZaFw0yMjAxMjEwOTE5NDZaMBQx\n" \
+                      "EjAQBgNVBAMTCWxvY2FsaG9zdDCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoC\n" \
+                      "ggEBAPkFOAf0QAfiT9PWQYQe+5YBwwglZWvVk7tGrbCmJZjyH7AtnJOtGcuJGXZd\n" \
+                      "01F27XgxBd7KgQpH8T+Ue2kTiH04HcuV5tz3CWJMdQCVXcsIBWq1cGkuM+85duhQ\n" \
+                      "GnUt1xSQYQGpUy6SzybNId79uCEAcwmCjdBuvjRDc1Cc/yqQISuGA76nNnzJhFOl\n" \
+                      "G166o4+6qMEiOlU7Z6u4kSx0XCgGs0BRv8HdiSVZ1XmkTysOv8CLSienJKLV2bul\n" \
+                      "6KL7AXyNbYJfskSJXy/0aQnFi5doq4s+ECYREvEjmZoO2VRwyH2ryDGZpdS6GaSu\n" \
+                      "P6FoTw5Kb9cA0r4g5hmE/dmMNMkCAwEAAaNiMGAwDAYDVR0TAQH/BAIwADAOBgNV\n" \
+                      "HQ8BAf8EBAMCBaAwFgYDVR0lAQH/BAwwCgYIKwYBBQUHAwEwFwYDVR0RAQH/BA0w\n" \
+                      "C4IJbG9jYWxob3N0MA8GCisGAQQBgjdUAQEEAQIwDQYJKoZIhvcNAQELBQADggEB\n" \
+                      "ABRj/AqgH1YijCxeaO3B7OHoFgb91zYdwgKzk4wDhXh0ITD1gOq6FigKjuYjnF//\n" \
+                      "0hU+MTCm9fXyDaP6v72zVATkTZDyyhdrn+GJOMhJiJBbyCVZNlKtDO5aEZOwTVK9\n" \
+                      "X1M95bq1P1G+N22Arq5jvOk2CL5kQkVI3Opj+JscJDZUNv0tX91xX4r6EDeKPWOa\n" \
+                      "xK9zxYqBmYm4r1ApDKicZjym0ArwQSTLGF1d+qz4ocoOthSd4f/WB0oEf76ZC8xG\n" \
+                      "irdY1lC4pPshF/yFWN2miCA/3GG4GIyJ+dQ3R1OCMSTnGI66zX0O4l6qbRZl4DRX\n" \
+                      "CnL4BqXdQoPvv67sKkvI/P8=\n" \
+                      "-----END CERTIFICATE-----\n";
 
 //IO Ports
 const byte ledPin = 2;
@@ -17,7 +40,6 @@ byte esp32ID;
 const byte postDataTime = 5; // Interval to send data in seconds
 const byte updateStateTime = 1; // sensorState refresh interval in seconds
 
-
 unsigned long currentTime = millis(); //
 unsigned long sensorTriggerTime = 0; // last motion detected
 unsigned long refreshStateTime = 0; // last state
@@ -26,9 +48,12 @@ volatile bool motionTrigger = false;
 volatile bool sensorState = false;
 bool startMotionTimer = false;
 
+String jwtToken;
+
 void ICACHE_RAM_ATTR DetectMovement();
 
 HTTPClient http;
+
 Ticker timerInterrupt; //Timer interrupt
 
 void setup() {
@@ -36,7 +61,7 @@ void setup() {
 
   Serial.begin(115200); //debugging with serial
 
-  http.useHTTP10(true); // Use http version 1.0 to use http.stream() with arduinojson
+  //http.useHTTP10(true); // Use http version 1.0 to use http.stream() with arduinojson
 
   //WiFi manager settings
   WiFiManager wm; // Initialize WiFIManager
@@ -51,8 +76,48 @@ void setup() {
   {
     Serial.println("Connection success");
   }
-  Serial.println(WiFi.macAddress());
-  LoadLastState();
+
+ 
+  //Serial.println(WiFi.macAddress());
+  if ((WiFi.status() == WL_CONNECTED))
+  {
+    http.begin("https://" SERVER_IP ":" SERVER_PORT "/token", sslCert);
+    int httpCode = http.GET();
+    if (0 < httpCode)
+    {
+      if (HTTP_CODE_OK == httpCode)
+      {
+        jwtToken = http.getString();
+        Serial.println(httpCode);
+        Serial.println(jwtToken);
+      }
+    }
+    else
+    {
+      Serial.print("Couldn't get JWT-token");
+    }
+    http.end();
+
+    http.begin("https://" SERVER_IP ":" SERVER_PORT "/microcontroller", sslCert);
+    http.addHeader("Content-Type", "application/json");
+    http.addHeader("Authorization", (String)"Bearer " += jwtToken);
+    httpCode = http.GET();
+    if (0 < httpCode)
+    {
+      if (HTTP_CODE_OK == httpCode)
+      {
+        String payload = http.getString();
+        Serial.println(httpCode);
+        Serial.println(payload);
+      }
+    }
+    else
+    {
+      Serial.print("Couldn't get data");
+    }
+    http.end();
+  }
+  //LoadLastState();
   pinMode(motionSensorPin, INPUT_PULLUP);
   pinMode(ledPin, OUTPUT);
   digitalWrite(ledPin, LOW);
