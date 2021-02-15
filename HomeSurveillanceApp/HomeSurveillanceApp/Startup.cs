@@ -29,8 +29,8 @@ namespace HomeSurveillanceApp
         public void ConfigureServices(IServiceCollection services)
         {
 
-            //string mySqlConnectionStr = Configuration.GetConnectionString("RemoteConnection");
-            string mySqlConnectionStr = Configuration.GetConnectionString("RPDockerConnection");
+            string mySqlConnectionStr = Configuration.GetConnectionString("RemoteConnection");
+            //string mySqlConnectionStr = Configuration.GetConnectionString("RPDockerConnection");
             services.AddDbContextPool<HomeSurveillanceDBContext>(o => o.UseMySql(mySqlConnectionStr, MariaDbServerVersion.AutoDetect(mySqlConnectionStr)));
             
 

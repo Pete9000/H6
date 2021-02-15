@@ -40,7 +40,7 @@ namespace HomeSurveillanceApp.Controllers.API
                 return NotFound();
             }
 
-            return device;
+            return Ok(device);
         }
         [HttpGet("GetIdFrom")]
         public async Task<ActionResult<Device>> GetDevice(string mac = null)
@@ -50,7 +50,7 @@ namespace HomeSurveillanceApp.Controllers.API
             var device = await _context.Devices.FirstOrDefaultAsync(d => d.MACAddress == mac);
             if(device == null)
                 return NotFound();
-            return device;
+            return Ok(device);
         }
 
         // PUT: api/Device/5
