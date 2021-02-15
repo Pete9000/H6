@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "j19wMlQLMvX2BjShsa7uG2p0inHXRTdcR7E3kGkjvkkE/FcBtX/nmU1FCZ7vfHhRDKaRkD36xfg6WxJgYxRMmQ==",
+  "dgSpecHash": "w8kfylEPN/6IRePc4y39HV4PTrwaBXMCS7v30UHYwtx2LjwuaO2xhKbdHtSvFRl3UJLqE04wWuebBoSzH8suYw==",
   "success": true,
-  "projectFilePath": "C:\\Users\\Peter\\source\\repos\\HomeSurveillanceApp\\HomeSurveillanceApp\\HomeSurveillanceApp.csproj",
+  "projectFilePath": "C:\\Users\\Peter\\Desktop\\H6\\Svendeprøve\\Projekt\\HomeSurveillanceApp\\HomeSurveillanceApp\\HomeSurveillanceApp.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\Peter\\.nuget\\packages\\humanizer.core\\2.8.26\\humanizer.core.2.8.26.nupkg.sha512",
     "C:\\Users\\Peter\\.nuget\\packages\\microsoft.aspnetcore.authentication.jwtbearer\\5.0.3\\microsoft.aspnetcore.authentication.jwtbearer.5.0.3.nupkg.sha512",

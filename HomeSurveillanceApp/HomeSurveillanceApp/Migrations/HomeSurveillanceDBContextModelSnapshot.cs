@@ -17,101 +17,6 @@ namespace HomeSurveillanceApp.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 64)
                 .HasAnnotation("ProductVersion", "5.0.3");
 
-            modelBuilder.Entity("HomeSurveillanceApp.Authentication.AuthModels.User", b =>
-                {
-                    b.Property<string>("Id")
-                        .HasColumnType("varchar(255) CHARACTER SET utf8mb4");
-
-                    b.Property<int>("AccessFailedCount")
-                        .HasColumnType("int");
-
-                    b.Property<string>("ConcurrencyStamp")
-                        .IsConcurrencyToken()
-                        .HasColumnType("longtext CHARACTER SET utf8mb4");
-
-                    b.Property<string>("Email")
-                        .HasMaxLength(256)
-                        .HasColumnType("varchar(256) CHARACTER SET utf8mb4");
-
-                    b.Property<bool>("EmailConfirmed")
-                        .HasColumnType("tinyint(1)");
-
-                    b.Property<bool>("LockoutEnabled")
-                        .HasColumnType("tinyint(1)");
-
-                    b.Property<DateTimeOffset?>("LockoutEnd")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<string>("NormalizedEmail")
-                        .HasMaxLength(256)
-                        .HasColumnType("varchar(256) CHARACTER SET utf8mb4");
-
-                    b.Property<string>("NormalizedUserName")
-                        .HasMaxLength(256)
-                        .HasColumnType("varchar(256) CHARACTER SET utf8mb4");
-
-                    b.Property<string>("PasswordHash")
-                        .HasColumnType("longtext CHARACTER SET utf8mb4");
-
-                    b.Property<string>("PhoneNumber")
-                        .HasColumnType("longtext CHARACTER SET utf8mb4");
-
-                    b.Property<bool>("PhoneNumberConfirmed")
-                        .HasColumnType("tinyint(1)");
-
-                    b.Property<string>("SecurityStamp")
-                        .HasColumnType("longtext CHARACTER SET utf8mb4");
-
-                    b.Property<bool>("TwoFactorEnabled")
-                        .HasColumnType("tinyint(1)");
-
-                    b.Property<string>("UserName")
-                        .HasMaxLength(256)
-                        .HasColumnType("varchar(256) CHARACTER SET utf8mb4");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("NormalizedEmail")
-                        .HasDatabaseName("EmailIndex");
-
-                    b.HasIndex("NormalizedUserName")
-                        .IsUnique()
-                        .HasDatabaseName("UserNameIndex");
-
-                    b.ToTable("AspNetUsers");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = "0849a93b-740a-4730-861f-8a29fc32d11f",
-                            AccessFailedCount = 0,
-                            ConcurrencyStamp = "bc2c8258-30a5-4772-8e23-bfc28d7376cb",
-                            Email = "sysadmin@test.dk",
-                            EmailConfirmed = false,
-                            LockoutEnabled = false,
-                            NormalizedUserName = "ADMIN",
-                            PasswordHash = "AQAAAAEAACcQAAAAEIreSi4dS0+eAGDAUZSIRwWmLkjJsnTnMtz4H7oGlTU5gmCtF4ywOiucSeIdnejJ6g==",
-                            PhoneNumberConfirmed = false,
-                            SecurityStamp = "4fc16220-2941-48b8-9b2a-cb7abac67373",
-                            TwoFactorEnabled = false,
-                            UserName = "Admin"
-                        },
-                        new
-                        {
-                            Id = "e55fd97f-03f8-4695-ba57-d080abdd9be6",
-                            AccessFailedCount = 0,
-                            ConcurrencyStamp = "0575e8b7-618b-4885-a8ba-8740af0e52d5",
-                            EmailConfirmed = false,
-                            LockoutEnabled = false,
-                            NormalizedUserName = "DeviceUser",
-                            PasswordHash = "AQAAAAEAACcQAAAAEOkInc66qWkJlLtI/Yl9ln9QMeogbScfAKuKL+uyRmbgAQ5qouIEeAtVrEq+EumsTQ==",
-                            PhoneNumberConfirmed = false,
-                            SecurityStamp = "e3223079-af76-4134-8685-0fdc85e8373d",
-                            TwoFactorEnabled = false,
-                            UserName = "DeviceUser"
-                        });
-                });
-
             modelBuilder.Entity("HomeSurveillanceApp.Models.Device", b =>
                 {
                     b.Property<int>("DeviceId")
@@ -211,7 +116,7 @@ namespace HomeSurveillanceApp.Migrations
                         new
                         {
                             TelemetryId = 1,
-                            ActivityTimeStamp = new DateTime(2021, 2, 12, 14, 33, 46, 872, DateTimeKind.Local).AddTicks(8227),
+                            ActivityTimeStamp = new DateTime(2021, 2, 14, 0, 21, 6, 295, DateTimeKind.Local).AddTicks(770),
                             IOUnitId = 1
                         });
                 });
@@ -223,6 +128,10 @@ namespace HomeSurveillanceApp.Migrations
 
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
+                        .HasColumnType("longtext CHARACTER SET utf8mb4");
+
+                    b.Property<string>("Discriminator")
+                        .IsRequired()
                         .HasColumnType("longtext CHARACTER SET utf8mb4");
 
                     b.Property<string>("Name")
@@ -240,6 +149,8 @@ namespace HomeSurveillanceApp.Migrations
                         .HasDatabaseName("RoleNameIndex");
 
                     b.ToTable("AspNetRoles");
+
+                    b.HasDiscriminator<string>("Discriminator").HasValue("IdentityRole");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -263,6 +174,76 @@ namespace HomeSurveillanceApp.Migrations
                     b.HasIndex("RoleId");
 
                     b.ToTable("AspNetRoleClaims");
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUser", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("varchar(255) CHARACTER SET utf8mb4");
+
+                    b.Property<int>("AccessFailedCount")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ConcurrencyStamp")
+                        .IsConcurrencyToken()
+                        .HasColumnType("longtext CHARACTER SET utf8mb4");
+
+                    b.Property<string>("Discriminator")
+                        .IsRequired()
+                        .HasColumnType("longtext CHARACTER SET utf8mb4");
+
+                    b.Property<string>("Email")
+                        .HasMaxLength(256)
+                        .HasColumnType("varchar(256) CHARACTER SET utf8mb4");
+
+                    b.Property<bool>("EmailConfirmed")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<bool>("LockoutEnabled")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<DateTimeOffset?>("LockoutEnd")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("NormalizedEmail")
+                        .HasMaxLength(256)
+                        .HasColumnType("varchar(256) CHARACTER SET utf8mb4");
+
+                    b.Property<string>("NormalizedUserName")
+                        .HasMaxLength(256)
+                        .HasColumnType("varchar(256) CHARACTER SET utf8mb4");
+
+                    b.Property<string>("PasswordHash")
+                        .HasColumnType("longtext CHARACTER SET utf8mb4");
+
+                    b.Property<string>("PhoneNumber")
+                        .HasColumnType("longtext CHARACTER SET utf8mb4");
+
+                    b.Property<bool>("PhoneNumberConfirmed")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<string>("SecurityStamp")
+                        .HasColumnType("longtext CHARACTER SET utf8mb4");
+
+                    b.Property<bool>("TwoFactorEnabled")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<string>("UserName")
+                        .HasMaxLength(256)
+                        .HasColumnType("varchar(256) CHARACTER SET utf8mb4");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("NormalizedEmail")
+                        .HasDatabaseName("EmailIndex");
+
+                    b.HasIndex("NormalizedUserName")
+                        .IsUnique()
+                        .HasDatabaseName("UserNameIndex");
+
+                    b.ToTable("AspNetUsers");
+
+                    b.HasDiscriminator<string>("Discriminator").HasValue("IdentityUser");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<string>", b =>
@@ -323,6 +304,13 @@ namespace HomeSurveillanceApp.Migrations
                     b.HasIndex("RoleId");
 
                     b.ToTable("AspNetUserRoles");
+
+                    b.HasData(
+                        new
+                        {
+                            UserId = "691fb7f8-66ce-4aca-b015-52082d23ad2b",
+                            RoleId = "ce0df133-9c5e-4b18-9572-b44a5c405cd5"
+                        });
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<string>", b =>
@@ -342,6 +330,67 @@ namespace HomeSurveillanceApp.Migrations
                     b.HasKey("UserId", "LoginProvider", "Name");
 
                     b.ToTable("AspNetUserTokens");
+                });
+
+            modelBuilder.Entity("HomeSurveillanceApp.Models.Auth.Role", b =>
+                {
+                    b.HasBaseType("Microsoft.AspNetCore.Identity.IdentityRole");
+
+                    b.HasDiscriminator().HasValue("Role");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = "ce0df133-9c5e-4b18-9572-b44a5c405cd5",
+                            ConcurrencyStamp = "6e0d77d2-06b5-4413-a13f-616f15830a15",
+                            Name = "Admin",
+                            NormalizedName = "ADMIN"
+                        },
+                        new
+                        {
+                            Id = "c061dcfd-62f4-4626-92b4-ae8deffeb964",
+                            ConcurrencyStamp = "56504448-b018-46b7-8ea7-c67706ed1f1b",
+                            Name = "User",
+                            NormalizedName = "USER"
+                        });
+                });
+
+            modelBuilder.Entity("HomeSurveillanceApp.Models.Auth.User", b =>
+                {
+                    b.HasBaseType("Microsoft.AspNetCore.Identity.IdentityUser");
+
+                    b.HasDiscriminator().HasValue("User");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = "691fb7f8-66ce-4aca-b015-52082d23ad2b",
+                            AccessFailedCount = 0,
+                            ConcurrencyStamp = "943bfe7e-ad75-40bf-ace3-44f0c2fa21ce",
+                            Email = "sysadmin@test.dk",
+                            EmailConfirmed = false,
+                            LockoutEnabled = false,
+                            NormalizedUserName = "ADMIN",
+                            PasswordHash = "AQAAAAEAACcQAAAAEA0OV/hKcb/L17spyONyZxijtMmvy3WJqD/7l/7ziir4GyQ3A8rBhUNzJaavcJAOtw==",
+                            PhoneNumberConfirmed = false,
+                            SecurityStamp = "d5258452-8bf2-4748-838e-11196f3378d3",
+                            TwoFactorEnabled = false,
+                            UserName = "Admin"
+                        },
+                        new
+                        {
+                            Id = "6308e3f7-8113-4eda-9890-4c159208afb3",
+                            AccessFailedCount = 0,
+                            ConcurrencyStamp = "443c23ff-47ea-4e51-bdba-94c24d8d8588",
+                            EmailConfirmed = false,
+                            LockoutEnabled = false,
+                            NormalizedUserName = "DEVICEUSER",
+                            PasswordHash = "AQAAAAEAACcQAAAAEK/TyHFBH2p71fHF/xIY5UN8JYgvwgsad5OpcnufzLYe3iw15WyAPiVGWptWkm81Wg==",
+                            PhoneNumberConfirmed = false,
+                            SecurityStamp = "7d43cb60-5109-4c33-96c2-dd84f5932e10",
+                            TwoFactorEnabled = false,
+                            UserName = "DeviceUser"
+                        });
                 });
 
             modelBuilder.Entity("HomeSurveillanceApp.Models.IOUnit", b =>
@@ -377,7 +426,7 @@ namespace HomeSurveillanceApp.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<string>", b =>
                 {
-                    b.HasOne("HomeSurveillanceApp.Authentication.AuthModels.User", null)
+                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -386,7 +435,7 @@ namespace HomeSurveillanceApp.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<string>", b =>
                 {
-                    b.HasOne("HomeSurveillanceApp.Authentication.AuthModels.User", null)
+                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -401,7 +450,7 @@ namespace HomeSurveillanceApp.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("HomeSurveillanceApp.Authentication.AuthModels.User", null)
+                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -410,7 +459,7 @@ namespace HomeSurveillanceApp.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<string>", b =>
                 {
-                    b.HasOne("HomeSurveillanceApp.Authentication.AuthModels.User", null)
+                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)

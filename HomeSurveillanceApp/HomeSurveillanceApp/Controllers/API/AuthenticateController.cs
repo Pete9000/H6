@@ -1,4 +1,4 @@
-﻿using HomeSurveillanceApp.Authentication.AuthModels;
+﻿using HomeSurveillanceApp.Models.Auth;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
@@ -14,7 +14,7 @@ using System.Threading.Tasks;
 
 namespace HomeSurveillanceApp.Controllers.API
 {
-    //[Authorize]
+
     [Route("api/[controller]")]
     [ApiController]
     public class AuthenticateController : ControllerBase
@@ -28,9 +28,10 @@ namespace HomeSurveillanceApp.Controllers.API
             _configuration = configuration;
         }
 
+        [AllowAnonymous]
         [HttpPost]
         [Route("Login")]
-        public async Task<IActionResult> Login([FromBody] AuthenticateModel authModel)
+        public async Task<IActionResult> Login([FromBody] Authentication authModel)
         {
             var user = await userManager.FindByNameAsync(authModel.Username);
             if (user != null && await userManager.CheckPasswordAsync(user, authModel.Password))
@@ -49,36 +50,13 @@ namespace HomeSurveillanceApp.Controllers.API
                     claims: authClaims,
                     signingCredentials: new SigningCredentials(authSigningKey, SecurityAlgorithms.HmacSha256)
                     );
-
                 return Ok(new
                 {
                     token = new JwtSecurityTokenHandler().WriteToken(token),
-                    expiration = token.ValidTo
+                    expiration = minutes //token.ValidTo
                 });
             }
             return Unauthorized();
         }
-        [HttpPost]
-        [Route("Register")]
-        public async Task<IActionResult> Register([FromBody] RegisterModel registerModel)
-        {
-            var userExists = await userManager.FindByNameAsync(registerModel.Username);
-            if (userExists != null)
-                return StatusCode(StatusCodes.Status500InternalServerError, new ResponseModel { Status = "Error", Message = "User already exists!" });
-
-            User user = new User()
-            {
-                Email = registerModel.Email,
-                SecurityStamp = Guid.NewGuid().ToString(),
-                UserName = registerModel.Username
-            };
-            var result = await userManager.CreateAsync(user, registerModel.Password);
-            if (!result.Succeeded)
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError, new ResponseModel { Status = "Error", Message = "User creation failed! Password must have atleast 1 Uppercase and 1 special character" });
-            }
-            return Ok(new ResponseModel { Status = "Success", Message = "User created successfully!" });
-        }
-
     }
 }

@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using HomeSurveillanceApp.Models;
-using HomeSurveillanceApp.Authentication.AuthModels;
+using HomeSurveillanceApp.Models.Auth;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,7 +10,7 @@ using Microsoft.AspNetCore.Identity;
 
 namespace HomeSurveillanceApp
 {
-    public class HomeSurveillanceDBContext : IdentityDbContext<User>
+    public class HomeSurveillanceDBContext : IdentityDbContext
     {
         public DbSet<Device> Devices { get; set; }
         public DbSet<IOUnit> IOUnits { get; set; }
@@ -34,10 +34,27 @@ namespace HomeSurveillanceApp
 
             modelBuilder.Entity<Telemetry>().HasData(new Telemetry { TelemetryId = 1, ActivityTimeStamp = DateTime.Now, IOUnitId = 1 });
 
+
+            //Add Users to identity.
+
+            string adminId = Guid.NewGuid().ToString();
             var hasher = new PasswordHasher<User>();
             modelBuilder.Entity<User>().HasData(
-                new User { UserName = "Admin", NormalizedUserName = "ADMIN", Email = "sysadmin@test.dk", SecurityStamp = Guid.NewGuid().ToString(), PasswordHash = hasher.HashPassword(null, "admin") },
-                new User { UserName = "DeviceUser", NormalizedUserName = "DeviceUser", SecurityStamp = Guid.NewGuid().ToString(), PasswordHash = hasher.HashPassword(null, "test123!") }
+                new User { Id = adminId, UserName = "Admin", NormalizedUserName = "ADMIN", Email = "sysadmin@test.dk", SecurityStamp = Guid.NewGuid().ToString(), PasswordHash = hasher.HashPassword(null, "admin") },
+                new User { UserName = "DeviceUser", NormalizedUserName = "DEVICEUSER", SecurityStamp = Guid.NewGuid().ToString(), PasswordHash = hasher.HashPassword(null, "test123!") }
+            );
+
+
+            //Add Admin role
+            string roleId = Guid.NewGuid().ToString();
+
+            modelBuilder.Entity<Role>().HasData(
+                new Role { ConcurrencyStamp = Guid.NewGuid().ToString(), Id = roleId, Name = "Admin", NormalizedName = "ADMIN" },
+                new Role { ConcurrencyStamp = Guid.NewGuid().ToString(), Id = Guid.NewGuid().ToString(), Name = "User", NormalizedName = "USER" }
+            );
+            //Add Role to Admin user
+            modelBuilder.Entity<IdentityUserRole<string>>().HasData(
+                new IdentityUserRole<string> { RoleId = roleId, UserId = adminId }
             );
 
             #endregion

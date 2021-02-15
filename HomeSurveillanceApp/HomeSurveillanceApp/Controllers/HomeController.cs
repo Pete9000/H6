@@ -10,7 +10,6 @@ using System.Threading.Tasks;
 
 namespace HomeSurveillanceApp.Controllers
 {
-    [Authorize]
     public class HomeController : Controller
     {
         [AllowAnonymous]
@@ -19,12 +18,6 @@ namespace HomeSurveillanceApp.Controllers
             return View();
         }
 
-        public IActionResult Privacy()
-        {
-            return View();
-        }
-
-        [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()
         {
             return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });

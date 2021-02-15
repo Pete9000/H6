@@ -1,15 +1,19 @@
-#include <WiFiManager.h> // Tool for selecting available networks.
 #include <WiFi.h>
+#include <WiFiManager.h> // Tool for selecting available networks.
 #include <HTTPClient.h>
 #include <ArduinoJson.h>
-#include <EEPROM.h>
 #include <Ticker.h>
+#include <NTPClient.h>
+#include <WiFiUdp.h>
 
-#define EEPROM_SIZE 2
-#define SERVER_IP "192.168.0.106"
-#define SERVER_PORT "49165"
+// Server
+#define BASE_URL "https://192.168.0.105:5000/"
+#define GET_JWT_URL "api/authenticate/login/"
+#define DEVICE_ID_URL "api/device/getidfrom?mac="
+#define POST_URL "api/telemetry/"
+#define MYSTATE_URL "api/iounit/"
 
-
+const char* ntpServer = "pool.ntp.org"; // DateTime Server.
 const char* sslCert = \
                       "-----BEGIN CERTIFICATE-----\n" \
                       "MIIDDTCCAfWgAwIBAgIJAPhfaYN9vYnxMA0GCSqGSIb3DQEBCwUAMBQxEjAQBgNV\n" \
@@ -31,37 +35,39 @@ const char* sslCert = \
                       "CnL4BqXdQoPvv67sKkvI/P8=\n" \
                       "-----END CERTIFICATE-----\n";
 
+const char* username = "deviceuser";
+const char* password = "test123!";
 //IO Ports
 const byte ledPin = 2;
 const byte motionSensorPin = 27;
+byte id = 0;
+byte sensorId = 1;
 
-byte esp32ID;
-
-const byte postDataTime = 5; // Interval to send data in seconds
-const byte updateStateTime = 1; // sensorState refresh interval in seconds
+const byte motionTriggerInterval = 30; // Interval beetween motion triggers in seconds
+const byte updateStateTime = 60; // State refresh interval in seconds
 
 unsigned long currentTime = millis(); //
 unsigned long sensorTriggerTime = 0; // last motion detected
-unsigned long refreshStateTime = 0; // last state
-
-volatile bool motionTrigger = false;
-volatile bool sensorState = false;
-bool startMotionTimer = false;
 
 String jwtToken;
 
+bool isrActive = true;
 void ICACHE_RAM_ATTR DetectMovement();
+volatile bool motionTrigger = false;
+bool motionAlreadyTriggered = false;
+bool newData = false;
 
-HTTPClient http;
+Ticker timerInterrupt;
+volatile bool updateState = false;
+Ticker timerInterrupt2;//Timer interrupt
+volatile bool loggedIn = false;
 
-Ticker timerInterrupt; //Timer interrupt
+WiFiUDP ntpUDP;
+NTPClient timeClient(ntpUDP, ntpServer); //, 3600, 60000);
 
 void setup() {
   WiFi.mode(WIFI_STA); // Setting WiFi to station mode
-
   Serial.begin(115200); //debugging with serial
-
-  //http.useHTTP10(true); // Use http version 1.0 to use http.stream() with arduinojson
 
   //WiFi manager settings
   WiFiManager wm; // Initialize WiFIManager
@@ -69,136 +75,220 @@ void setup() {
   res = wm.autoConnect("SetupAP", "pass1234");
   if (!res)
   {
-    Serial.println("Connection failed");
+    //Serial.println("Connection failed");
     wm.resetSettings();
   }
   else
   {
-    Serial.println("Connection success");
+    //Serial.println("Connection success");
   }
-
- 
-  //Serial.println(WiFi.macAddress());
-  if ((WiFi.status() == WL_CONNECTED))
+  while((WiFi.status() != WL_CONNECTED))
   {
-    http.begin("https://" SERVER_IP ":" SERVER_PORT "/token", sslCert);
-    int httpCode = http.GET();
-    if (0 < httpCode)
-    {
-      if (HTTP_CODE_OK == httpCode)
-      {
-        jwtToken = http.getString();
-        Serial.println(httpCode);
-        Serial.println(jwtToken);
-      }
-    }
-    else
-    {
-      Serial.print("Couldn't get JWT-token");
-    }
-    http.end();
-
-    http.begin("https://" SERVER_IP ":" SERVER_PORT "/microcontroller", sslCert);
-    http.addHeader("Content-Type", "application/json");
-    http.addHeader("Authorization", (String)"Bearer " += jwtToken);
-    httpCode = http.GET();
-    if (0 < httpCode)
-    {
-      if (HTTP_CODE_OK == httpCode)
-      {
-        String payload = http.getString();
-        Serial.println(httpCode);
-        Serial.println(payload);
-      }
-    }
-    else
-    {
-      Serial.print("Couldn't get data");
-    }
-    http.end();
+    GetJWT();
+    GetId();
   }
-  //LoadLastState();
   pinMode(motionSensorPin, INPUT_PULLUP);
   pinMode(ledPin, OUTPUT);
   digitalWrite(ledPin, LOW);
   attachInterrupt(digitalPinToInterrupt(motionSensorPin), DetectMovement, RISING);
-  timerInterrupt.attach_ms(updateStateTime * 1000, UpdateState);
-  //detachInterrupt(digitalPinToInterrupt(motionSensor));
+  timerInterrupt.attach(updateStateTime , UpdateState);
 }
 
 void loop()
 {
   currentTime = millis();
-  if (motionTrigger) // Motion detected
+  if (motionTrigger && !motionAlreadyTriggered) // Motion detected
   {
-    Serial.println("Motion detected");
+    Serial.println(F("Motion detected"));
     digitalWrite(ledPin, HIGH);
     sensorTriggerTime = millis();
     motionTrigger = false;
-    startMotionTimer = true;
+    motionAlreadyTriggered = true;
+    newData = true;
+
   }
-  if (startMotionTimer && (currentTime - sensorTriggerTime > postDataTime * 1000)) //
+  if (motionAlreadyTriggered && currentTime - sensorTriggerTime > motionTriggerInterval * 1000) //
   {
-    Serial.println("Motion stopped");
     digitalWrite(ledPin, LOW);
-    startMotionTimer = false;
+    Serial.println(F("Ready for new motion"));
+    motionAlreadyTriggered = false;
   }
-}
-void IRAM_ATTR DetectMovement() {
-  motionTrigger = true;
-}
-
-void LoadLastState()
-{
-  EEPROM.begin(EEPROM_SIZE);
-  esp32ID = EEPROM.read(0); //read index 0
-
-  // If ID is default value 255, get ID from API.
-  while (255 == esp32ID)
+  if (newData)
   {
-    if ((WiFi.status() == WL_CONNECTED))
-    {
-      http.begin("http://" SERVER_IP ":" SERVER_PORT "/Devices/?macaddress=" + (String)WiFi.macAddress());
-      int httpCode = http.GET();
-      if (0 < httpCode)
-      {
-        if (HTTP_CODE_OK == httpCode)
-        {
-          //StaticJsonDocument<128> json;
-          DynamicJsonDocument json(2048);
-          deserializeJson(json, http.getStream());
-          esp32ID = json["espid"].as<byte>();
-          EEPROM.write(0, esp32ID);
-        }
-      }
-      else
-      {
-        Serial.print("http error");
-        delay(300000); // 5 min
-      }
-      http.end();
-    }
-    else
-    {
-      Serial.print("WiFi error");
-      delay(300000); // 5 min
-    }
+    if (!loggedIn)
+      GetJWT();
+    PostSensorData();
   }
-  Serial.println(esp32ID);
-  EEPROM.end();
+  if (updateState)
+  {
+    bool sensorState = GetSensorState();
+    if (sensorState && !isrActive)
+    {
+      attachInterrupt(digitalPinToInterrupt(motionSensorPin), DetectMovement, RISING);
+      isrActive = !isrActive;
+      Serial.println("activated");
+    }
+    else if (!sensorState && isrActive)
+    {
+      detachInterrupt(motionSensorPin);
+      isrActive = !isrActive;
+      Serial.println("deactivated");
+    }
+    updateState = false;
+  }
 }
 
-byte GetESPID(String url)
+///////////////////Interrupts//////////////////
+void IRAM_ATTR DetectMovement()
 {
-
-}
-
-void HttpPostData(String url)
-{
-  http.begin(url);
+    motionTrigger = true;
 }
 
 void UpdateState()
 {
+    updateState = true;
+}
 
+void RefreshToken()
+{
+   loggedIn = false;
+}
+ 
+////////////////////Interrupts END //////////////////
+
+
+void GetJWT()
+{
+  DynamicJsonDocument doc(128);
+  doc["username"] = username;
+  doc["password"] = password;
+
+  // Serialize JSON document
+  String jsonstr;
+  serializeJson(doc, jsonstr);
+
+  HTTPClient https;
+  https.useHTTP10(true);
+  // Send request
+  https.begin(BASE_URL GET_JWT_URL, sslCert);
+  https.addHeader(F("Content-Type"), F("application/json"));
+  byte tokenExpiration;
+  int httpCode = https.POST(jsonstr);
+  if (0 < httpCode)
+  {
+    if (HTTP_CODE_OK == httpCode)
+    {
+      DynamicJsonDocument json(512);
+      deserializeJson(json, https.getStream());
+      jwtToken = json[F("token")].as<char*>();
+      tokenExpiration = json[F("expiration")].as<byte>();
+      Serial.println(F("GetJWT success"));
+      //Serial.println(jwtToken);
+      //Serial.println(tokenExpiration);
+    }
+    else
+    {
+      Serial.print(F("Oops.. Something went wrong. HTTP Status code = "));
+      Serial.println(httpCode);
+    }
+  }
+  else
+  {
+    Serial.println(F("GetJWT Connection error"));
+  }
+  https.end();
+  timerInterrupt2.attach(tokenExpiration * 60, RefreshToken);
+  loggedIn = true;
+}
+
+void GetId()
+{
+  HTTPClient https;
+  https.useHTTP10(true);
+  https.begin(BASE_URL DEVICE_ID_URL + (String)WiFi.macAddress(), sslCert);
+  https.addHeader(F("Authorization"), "Bearer " + jwtToken);
+  int httpCode = https.GET();
+  if (0 < httpCode)
+  {
+    if (HTTP_CODE_OK == httpCode)
+    {
+      DynamicJsonDocument json(192);
+      deserializeJson(json, https.getStream());
+      id = json[F("deviceId")].as<byte>();
+      Serial.println(F("GetId Success"));
+    }
+  }
+  else
+  {
+    Serial.print(F("GetId HTTP error"));
+  }
+  https.end();
+}
+void PostSensorData()
+{
+  // GET TIME STAMP FIRST
+  timeClient.begin();
+  while (!timeClient.update()) {
+    timeClient.forceUpdate();
+  }
+  String formattedDate = timeClient.getFormattedDate();
+  timeClient.end();
+  DynamicJsonDocument telemetry(128);
+  telemetry[F("activityTimeStamp")] = formattedDate;
+  telemetry[F("ioUnitId")] = sensorId;
+  // Serialize JSON document
+  String jsonstr;
+
+  serializeJson(telemetry, jsonstr);
+  HTTPClient https;
+  https.useHTTP10(true);
+  // Send request
+  https.begin(BASE_URL POST_URL, sslCert);
+  https.addHeader(F("Content-Type"), F("application/json"));
+  https.addHeader(F("Authorization"), "Bearer " + jwtToken);
+  int httpCode = https.POST(jsonstr);
+  //Serial.println(httpCode);
+  //Serial.println(jsonstr);
+  if (0 < httpCode)
+  {
+    if (HTTP_CODE_CREATED == httpCode)
+    {
+      Serial.println(F("Post telemetry success"));
+    }
+  }
+  else
+  {
+    Serial.print(F("Couldn't post telemetry"));
+  }
+  https.end();
+  newData = false;
+}
+bool GetSensorState()
+{
+  Serial.println("1");
+  HTTPClient https;
+  https.useHTTP10(true);
+  Serial.println(BASE_URL MYSTATE_URL + (String)sensorId);
+  https.begin(BASE_URL MYSTATE_URL + (String)sensorId, sslCert);
+  https.addHeader(F("Authorization"), "Bearer " + jwtToken);
+  bool sensorEnabled;
+  int httpCode = https.GET();
+  Serial.println(httpCode);
+  if (0 < httpCode)
+  {
+    if (HTTP_CODE_OK == httpCode)
+    {
+      DynamicJsonDocument json(192);
+      deserializeJson(json, https.getStream());
+      sensorEnabled = json[F("enabled")].as<bool>();
+      Serial.print(F("Sensor is "));
+      Serial.println(sensorEnabled);
+    }
+  }
+  else
+  {
+    Serial.print(F("GetSensorState HTTP error"));
+  }
+  https.end();
+  return sensorEnabled;
 }

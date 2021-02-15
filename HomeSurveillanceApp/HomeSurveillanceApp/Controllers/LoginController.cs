@@ -1,4 +1,4 @@
-﻿using HomeSurveillanceApp.Authentication.AuthModels;
+﻿using HomeSurveillanceApp.Models.Auth;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
@@ -11,35 +11,38 @@ using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using Microsoft.AspNetCore.Authorization;
+
 
 namespace HomeSurveillanceApp.Controllers
 {
     public class LoginController : Controller
     {
-
-        private readonly UserManager<User> userManager;
+        private readonly UserManager<User> _userManager;
+        private readonly RoleManager<IdentityRole> _roleManager;
         private readonly IConfiguration _configuration;
 
-        public LoginController(UserManager<User> userManager, IConfiguration configuration)
+        public LoginController(UserManager<User> userManager, RoleManager<IdentityRole> roleManager, IConfiguration configuration)
         {
-            this.userManager = userManager;
+            _roleManager = roleManager;
+            _userManager = userManager;
             _configuration = configuration;
         }
+
+        [AllowAnonymous]
         public IActionResult Index()
         {
             return View();
         }
-
+        [AllowAnonymous]
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Index([Bind("Username,Password")] AuthenticateModel authModel)
+        public async Task<IActionResult> Index([Bind("Username,Password")] Authentication authModel)
         {
-            string currentUserId = User.Identity.Name;
-            //userManager.ChangePasswordAsync()
-            var user = await userManager.FindByNameAsync(authModel.Username);
-            if (user != null && await userManager.CheckPasswordAsync(user, authModel.Password))
+            var user = await _userManager.FindByNameAsync(authModel.Username);
+            if (user != null && await _userManager.CheckPasswordAsync(user, authModel.Password))
             {
-                var userRoles = await userManager.GetRolesAsync(user);
+                var userRoles = await _userManager.GetRolesAsync(user);
 
                 var authClaims = new List<Claim>
                 {
@@ -57,16 +60,51 @@ namespace HomeSurveillanceApp.Controllers
                 var token = new JwtSecurityToken(
                     issuer: _configuration["JwtConfig:ValidIssuer"],
                     audience: _configuration["JwtConfig:ValidAudience"],
-                    expires: DateTime.Now.AddHours(2),
+                    expires: DateTime.Now.AddMinutes(minutes),
                     claims: authClaims,
                     signingCredentials: new SigningCredentials(authSigningKey, SecurityAlgorithms.HmacSha256)
                     );
 
                 string key = new JwtSecurityTokenHandler().WriteToken(token);
-                SetCookie(_configuration["JwtConfig:CookieName"], key, 20);
-                return Redirect("/Home");
+                SetCookie(_configuration["JwtConfig:CookieName"], key, Convert.ToInt32(minutes));
+                return Redirect("/");
             }
             return Unauthorized();
+        }
+
+        [Authorize(Roles = "Admin")]
+        public IActionResult Register()
+        {
+            ViewBag.Roles = _roleManager.Roles.Select(x => x.Name).ToList();
+            //ViewData["roles"] = _roleManager.Roles.Select(x=>x.Name).ToList();
+            return View();
+        }
+
+        [Authorize(Roles = "Admin")]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Register([Bind("Username, UserRole, Password")] Registration registerModel)
+        {
+            var userExists = await _userManager.FindByNameAsync(registerModel.Username);
+            if (userExists != null)
+                return StatusCode(StatusCodes.Status500InternalServerError, new Response { Status = "Error", Message = "User already exists!" });
+
+            User user = new User()
+            {
+                SecurityStamp = Guid.NewGuid().ToString(),
+                UserName = registerModel.Username
+            };
+            var result = await _userManager.CreateAsync(user, registerModel.Password);
+            if (result.Succeeded)
+            {
+                var role = _roleManager.FindByNameAsync(registerModel.UserRole).Result;
+                await _userManager.AddToRoleAsync(user, role.Name);
+                ViewBag.Message = "Succesfully created user";
+                ViewBag.Roles = _roleManager.Roles.Select(x => x.Name).ToList();
+                return View();
+            }
+            return StatusCode(StatusCodes.Status500InternalServerError, new Response { Status = "Error", Message = "User creation failed! Password must have atleast 1 Uppercase and 1 special character" });
+
         }
 
         public IActionResult Logout()
@@ -75,7 +113,7 @@ namespace HomeSurveillanceApp.Controllers
             return RedirectToAction("Index");
         }
 
-        public void SetCookie(string key, string value, int? expiration)
+        void SetCookie(string key, string value, int? expiration)
         {
             CookieOptions option = new CookieOptions();
             if (expiration.HasValue)
@@ -84,9 +122,9 @@ namespace HomeSurveillanceApp.Controllers
                 option.Expires = DateTime.Now.AddMilliseconds(10);
             Response.Cookies.Append(key, value, option);
         }
-        public void RemoveCookie(string key)
+        void RemoveCookie(string key)
         {
-            if(Request.Cookies.ContainsKey(key))
+            if (Request.Cookies.ContainsKey(key))
                 Response.Cookies.Delete(key);
         }
     }

@@ -10888,11 +10888,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\Peter\\source\\repos\\HomeSurveillanceApp\\HomeSurveillanceApp\\HomeSurveillanceApp.csproj",
+      "projectUniqueName": "C:\\Users\\Peter\\Desktop\\H6\\Svendeprøve\\Projekt\\HomeSurveillanceApp\\HomeSurveillanceApp\\HomeSurveillanceApp.csproj",
       "projectName": "HomeSurveillanceApp",
-      "projectPath": "C:\\Users\\Peter\\source\\repos\\HomeSurveillanceApp\\HomeSurveillanceApp\\HomeSurveillanceApp.csproj",
+      "projectPath": "C:\\Users\\Peter\\Desktop\\H6\\Svendeprøve\\Projekt\\HomeSurveillanceApp\\HomeSurveillanceApp\\HomeSurveillanceApp.csproj",
       "packagesPath": "C:\\Users\\Peter\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\Peter\\source\\repos\\HomeSurveillanceApp\\HomeSurveillanceApp\\obj\\publish\\linux-arm\\",
+      "outputPath": "C:\\Users\\Peter\\Desktop\\H6\\Svendeprøve\\Projekt\\HomeSurveillanceApp\\HomeSurveillanceApp\\obj\\publish\\linux-arm\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "C:\\Users\\Peter\\AppData\\Roaming\\NuGet\\NuGet.Config",
