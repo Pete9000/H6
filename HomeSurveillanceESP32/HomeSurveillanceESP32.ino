@@ -82,10 +82,12 @@ void setup() {
   {
     //Serial.println("Connection success");
   }
-  while((WiFi.status() != WL_CONNECTED))
+  while ((WiFi.status() != WL_CONNECTED && id == 0))
   {
-    GetJWT();
+    if (loggedIn == false)
+      GetJWT();
     GetId();
+    Serial.println(id);
   }
   pinMode(motionSensorPin, INPUT_PULLUP);
   pinMode(ledPin, OUTPUT);
@@ -141,19 +143,20 @@ void loop()
 ///////////////////Interrupts//////////////////
 void IRAM_ATTR DetectMovement()
 {
-    motionTrigger = true;
+  motionTrigger = true;
 }
 
 void UpdateState()
 {
-    updateState = true;
+  updateState = true;
 }
 
 void RefreshToken()
 {
-   loggedIn = false;
+  loggedIn = false;
+  timerInterrupt2.detach();
 }
- 
+
 ////////////////////Interrupts END //////////////////
 
 
@@ -185,6 +188,8 @@ void GetJWT()
       Serial.println(F("GetJWT success"));
       //Serial.println(jwtToken);
       //Serial.println(tokenExpiration);
+      timerInterrupt2.attach(tokenExpiration * 60, RefreshToken);
+      loggedIn = true;
     }
     else
     {
@@ -197,8 +202,7 @@ void GetJWT()
     Serial.println(F("GetJWT Connection error"));
   }
   https.end();
-  timerInterrupt2.attach(tokenExpiration * 60, RefreshToken);
-  loggedIn = true;
+
 }
 
 void GetId()

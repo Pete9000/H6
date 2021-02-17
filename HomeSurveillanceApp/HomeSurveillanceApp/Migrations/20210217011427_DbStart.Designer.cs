@@ -3,14 +3,16 @@ using System;
 using HomeSurveillanceApp;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace HomeSurveillanceApp.Migrations
 {
     [DbContext(typeof(HomeSurveillanceDBContext))]
-    partial class HomeSurveillanceDBContextModelSnapshot : ModelSnapshot
+    [Migration("20210217011427_DbStart")]
+    partial class DbStart
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
