@@ -13,7 +13,6 @@ using System.Security.Claims;
 using System.Text;
 using Microsoft.AspNetCore.Authorization;
 
-
 namespace HomeSurveillanceApp.Controllers
 {
     public class LoginController : Controller
@@ -114,7 +113,7 @@ namespace HomeSurveillanceApp.Controllers
         void SetCookie(string key, string value, int? expiration)
         {
             //set http only to remove access from client side javascript
-            CookieOptions option = new CookieOptions { HttpOnly = true};
+            CookieOptions option = new CookieOptions { HttpOnly = true, SameSite = SameSiteMode.Strict, Secure = true };
             if (expiration.HasValue)
                 option.Expires = DateTime.Now.AddMinutes(expiration.Value);
             else

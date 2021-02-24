@@ -370,3 +370,4 @@ C:\Users\Peter\Desktop\H6\Svendeprøve\Projekt\HomeSurveillanceApp\HomeSurveilla
 C:\Users\Peter\Desktop\H6\Svendeprøve\Projekt\HomeSurveillanceApp\HomeSurveillanceApp\obj\Debug\net5.0\Razor\Views\Telemetries\Details.cshtml.g.cs
 C:\Users\Peter\Desktop\H6\Svendeprøve\Projekt\HomeSurveillanceApp\HomeSurveillanceApp\obj\Debug\net5.0\Razor\Views\Telemetries\Edit.cshtml.g.cs
 C:\Users\Peter\Desktop\H6\Svendeprøve\Projekt\HomeSurveillanceApp\HomeSurveillanceApp\obj\Debug\net5.0\Razor\Views\Telemetries\Index.cshtml.g.cs
+C:\Users\Peter\Desktop\H6\Svendeprøve\Projekt\HomeSurveillanceApp\HomeSurveillanceApp\obj\Debug\net5.0\HomeSurveillanceApp.csprojAssemblyReference.cache
