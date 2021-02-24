@@ -7,7 +7,7 @@
 #include <WiFiUdp.h>
 
 // Server
-#define BASE_URL "https://192.168.0.105:5000/"
+#define BASE_URL "https://192.168.1.108:5000/"
 #define GET_JWT_URL "api/authenticate/login/"
 #define DEVICE_ID_URL "api/device/getidfrom?mac="
 #define POST_URL "api/telemetry/"
@@ -59,6 +59,7 @@ bool newData = false;
 
 Ticker timerInterrupt;
 volatile bool updateState = false;
+bool sensorState = true;
 Ticker timerInterrupt2;//Timer interrupt
 volatile bool loggedIn = false;
 
@@ -82,13 +83,12 @@ void setup() {
   {
     //Serial.println("Connection success");
   }
-  while ((WiFi.status() != WL_CONNECTED && id == 0))
+  while (id == 0)
   {
-    if (loggedIn == false)
-      GetJWT();
     GetId();
-    Serial.println(id);
   }
+  Serial.print(F("Id is: "));
+  Serial.println(id);
   pinMode(motionSensorPin, INPUT_PULLUP);
   pinMode(ledPin, OUTPUT);
   digitalWrite(ledPin, LOW);
@@ -115,28 +115,34 @@ void loop()
     Serial.println(F("Ready for new motion"));
     motionAlreadyTriggered = false;
   }
-  if (newData)
+
+  if (WiFi.status() == WL_CONNECTED)
   {
-    if (!loggedIn)
-      GetJWT();
-    PostSensorData();
+    if (newData)
+      PostSensorData();
+
+    if (updateState)
+    {
+      GetSensorState();
+      if (sensorState && !isrActive)
+      {
+        attachInterrupt(digitalPinToInterrupt(motionSensorPin), DetectMovement, RISING);
+        isrActive = !isrActive;
+        Serial.println("Activated sensor");
+      }
+      else if (!sensorState && isrActive)
+      {
+        detachInterrupt(motionSensorPin);
+        isrActive = !isrActive;
+        Serial.println("Deactivated sensor");
+      }
+    }
   }
-  if (updateState)
+  else
   {
-    bool sensorState = GetSensorState();
-    if (sensorState && !isrActive)
-    {
-      attachInterrupt(digitalPinToInterrupt(motionSensorPin), DetectMovement, RISING);
-      isrActive = !isrActive;
-      Serial.println("activated");
-    }
-    else if (!sensorState && isrActive)
-    {
-      detachInterrupt(motionSensorPin);
-      isrActive = !isrActive;
-      Serial.println("deactivated");
-    }
-    updateState = false;
+    Serial.println(F("WiFi Error. Reconnecting"));
+    WiFi.reconnect();
+    delay(1000);
   }
 }
 
@@ -162,137 +168,186 @@ void RefreshToken()
 
 void GetJWT()
 {
-  DynamicJsonDocument doc(128);
-  doc["username"] = username;
-  doc["password"] = password;
-
-  // Serialize JSON document
-  String jsonstr;
-  serializeJson(doc, jsonstr);
-
-  HTTPClient https;
-  https.useHTTP10(true);
-  // Send request
-  https.begin(BASE_URL GET_JWT_URL, sslCert);
-  https.addHeader(F("Content-Type"), F("application/json"));
-  byte tokenExpiration;
-  int httpCode = https.POST(jsonstr);
-  if (0 < httpCode)
+  //Check for WiFi connection
+  if (WiFi.status() == WL_CONNECTED)
   {
-    if (HTTP_CODE_OK == httpCode)
+    //Create JSON document and Serialize for request body
+    DynamicJsonDocument doc(128);
+    doc["username"] = username;
+    doc["password"] = password;
+    String jsonstr;
+    serializeJson(doc, jsonstr);
+    //Start HTTPclient
+    HTTPClient https;
+    https.useHTTP10(true);
+    // Send request and get http statuscode
+    https.begin(BASE_URL GET_JWT_URL, sslCert);
+    https.addHeader(F("Content-Type"), F("application/json"));
+    int httpCode = https.POST(jsonstr);
+    Serial.println(httpCode);
+    //Check for acceptable http statuscode
+    if (0 < httpCode)
     {
-      DynamicJsonDocument json(512);
-      deserializeJson(json, https.getStream());
-      jwtToken = json[F("token")].as<char*>();
-      tokenExpiration = json[F("expiration")].as<byte>();
-      Serial.println(F("GetJWT success"));
-      //Serial.println(jwtToken);
-      //Serial.println(tokenExpiration);
-      timerInterrupt2.attach(tokenExpiration * 60, RefreshToken);
-      loggedIn = true;
+      if (HTTP_CODE_OK == httpCode)
+      {
+        //Create JsonDocument and Deserialize response body
+        DynamicJsonDocument json(768);
+        deserializeJson(json, https.getStream());
+        jwtToken = json[F("token")].as<char*>();
+        byte tokenExpiration = json[F("expiration")].as<byte>();
+        Serial.println(F("GetJWT success"));
+        //Add timer for expiration of JWT token
+        timerInterrupt2.attach((tokenExpiration - 1) * 60, RefreshToken);
+        loggedIn = true;
+      }
+      else
+      {
+        Serial.print(F("Error. HTTP Statuscode = "));
+        Serial.println(httpCode);
+      }
     }
     else
-    {
-      Serial.print(F("Oops.. Something went wrong. HTTP Status code = "));
-      Serial.println(httpCode);
-    }
+      Serial.println(F("GetJWT Connection error"));
+    https.end();
   }
   else
-  {
-    Serial.println(F("GetJWT Connection error"));
-  }
-  https.end();
-
+    Serial.println(F("GetJWT WiFi Error."));
 }
 
 void GetId()
 {
-  HTTPClient https;
-  https.useHTTP10(true);
-  https.begin(BASE_URL DEVICE_ID_URL + (String)WiFi.macAddress(), sslCert);
-  https.addHeader(F("Authorization"), "Bearer " + jwtToken);
-  int httpCode = https.GET();
-  if (0 < httpCode)
+  if (WiFi.status() == WL_CONNECTED)
   {
-    if (HTTP_CODE_OK == httpCode)
+    if (!loggedIn)
     {
-      DynamicJsonDocument json(192);
-      deserializeJson(json, https.getStream());
-      id = json[F("deviceId")].as<byte>();
-      Serial.println(F("GetId Success"));
+      GetJWT();
+      if (!loggedIn)
+        return;
     }
+    HTTPClient https;
+    https.useHTTP10(true);
+    https.begin(BASE_URL DEVICE_ID_URL + (String)WiFi.macAddress(), sslCert);
+    https.addHeader(F("Authorization"), "Bearer " + jwtToken);
+    int httpCode = https.GET();
+    Serial.println(httpCode);
+    if (0 < httpCode)
+    {
+      if (HTTP_CODE_OK == httpCode)
+      {
+        DynamicJsonDocument json(192);
+        deserializeJson(json, https.getStream());
+        id = json[F("deviceId")].as<byte>();
+        Serial.println(F("GetId Success"));
+      }
+      else
+      {
+        Serial.print(F("Error. HTTP Statuscode = "));
+        Serial.println(httpCode);
+      }
+    }
+    else
+    {
+      Serial.println(F("GetId Connection error"));
+    }
+    https.end();
   }
   else
-  {
-    Serial.print(F("GetId HTTP error"));
-  }
-  https.end();
+    Serial.println(F("GetId WiFi Error."));
 }
 void PostSensorData()
 {
-  // GET TIME STAMP FIRST
-  timeClient.begin();
-  while (!timeClient.update()) {
-    timeClient.forceUpdate();
-  }
-  String formattedDate = timeClient.getFormattedDate();
-  timeClient.end();
-  DynamicJsonDocument telemetry(128);
-  telemetry[F("activityTimeStamp")] = formattedDate;
-  telemetry[F("ioUnitId")] = sensorId;
-  // Serialize JSON document
-  String jsonstr;
-
-  serializeJson(telemetry, jsonstr);
-  HTTPClient https;
-  https.useHTTP10(true);
-  // Send request
-  https.begin(BASE_URL POST_URL, sslCert);
-  https.addHeader(F("Content-Type"), F("application/json"));
-  https.addHeader(F("Authorization"), "Bearer " + jwtToken);
-  int httpCode = https.POST(jsonstr);
-  //Serial.println(httpCode);
-  //Serial.println(jsonstr);
-  if (0 < httpCode)
+  if (WiFi.status() == WL_CONNECTED)
   {
-    if (HTTP_CODE_CREATED == httpCode)
+    if (!loggedIn)
     {
-      Serial.println(F("Post telemetry success"));
+      GetJWT();
+      if (!loggedIn)
+        return;
     }
+    // GET TIME STAMP FIRST
+    timeClient.begin();
+    while (!timeClient.update()) {
+      timeClient.forceUpdate();
+    }
+    String formattedDate = timeClient.getFormattedDate();
+    timeClient.end();
+    
+    DynamicJsonDocument telemetry(128);
+    telemetry[F("activityTimeStamp")] = formattedDate;
+    telemetry[F("ioUnitId")] = sensorId;
+    // Serialize JSON document
+    String jsonstr;
+    serializeJson(telemetry, jsonstr);
+    HTTPClient https;
+    https.useHTTP10(true);
+    // Send request
+    https.begin(BASE_URL POST_URL, sslCert);
+    https.addHeader(F("Content-Type"), F("application/json"));
+    https.addHeader(F("Authorization"), "Bearer " + jwtToken);
+    int httpCode = https.POST(jsonstr);
+    Serial.println(httpCode);
+    if (0 < httpCode)
+    {
+      if (HTTP_CODE_CREATED == httpCode)
+      {
+        Serial.println(F("Post telemetry success"));
+        newData = false;
+      }
+      else
+      {
+        Serial.print(F("Error. HTTP Statuscode = "));
+        Serial.println(httpCode);
+      }
+    }
+    else
+    {
+      Serial.println(F("PostSensorData Connection error"));
+    }
+    https.end();
   }
   else
-  {
-    Serial.print(F("Couldn't post telemetry"));
-  }
-  https.end();
-  newData = false;
+    Serial.println(F("PostSensorData WiFi Error."));
 }
-bool GetSensorState()
+void GetSensorState()
 {
-  Serial.println("1");
-  HTTPClient https;
-  https.useHTTP10(true);
-  Serial.println(BASE_URL MYSTATE_URL + (String)sensorId);
-  https.begin(BASE_URL MYSTATE_URL + (String)sensorId, sslCert);
-  https.addHeader(F("Authorization"), "Bearer " + jwtToken);
-  bool sensorEnabled;
-  int httpCode = https.GET();
-  Serial.println(httpCode);
-  if (0 < httpCode)
+  if (WiFi.status() == WL_CONNECTED)
   {
-    if (HTTP_CODE_OK == httpCode)
+    if (!loggedIn)
     {
-      DynamicJsonDocument json(192);
-      deserializeJson(json, https.getStream());
-      sensorEnabled = json[F("enabled")].as<bool>();
-      Serial.print(F("Sensor is "));
-      Serial.println(sensorEnabled);
+      GetJWT();
+      if (!loggedIn)
+        return;
     }
+    HTTPClient https;
+    https.useHTTP10(true);
+    Serial.println(BASE_URL MYSTATE_URL + (String)sensorId);
+    https.begin(BASE_URL MYSTATE_URL + (String)sensorId, sslCert);
+    https.addHeader(F("Authorization"), "Bearer " + jwtToken);
+    int httpCode = https.GET();
+    Serial.println(httpCode);
+    if (0 < httpCode)
+    {
+      if (HTTP_CODE_OK == httpCode)
+      {
+        DynamicJsonDocument json(192);
+        deserializeJson(json, https.getStream());
+        sensorState = json[F("enabled")].as<bool>();
+        Serial.print(F("Sensor is "));
+        Serial.println(sensorState);
+        updateState = false;
+      }
+      else
+      {
+        Serial.print(F("Error. HTTP Statuscode = "));
+        Serial.println(httpCode);
+      }
+    }
+    else
+    {
+      Serial.println(F("GetSensorState Connection error"));
+    }
+    https.end();
   }
   else
-  {
-    Serial.print(F("GetSensorState HTTP error"));
-  }
-  https.end();
-  return sensorEnabled;
+    Serial.println(F("GetSensorState WiFi Error."));
 }

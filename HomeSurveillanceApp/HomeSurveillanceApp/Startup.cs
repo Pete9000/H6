@@ -29,7 +29,8 @@ namespace HomeSurveillanceApp
         public void ConfigureServices(IServiceCollection services)
         {
 
-            string mySqlConnectionStr = Configuration.GetConnectionString("RemoteConnection");
+            //string mySqlConnectionStr = Configuration.GetConnectionString("RemoteConnection");
+            string mySqlConnectionStr = Configuration.GetConnectionString("DockerConnection");
             //string mySqlConnectionStr = Configuration.GetConnectionString("RPDockerConnection");
             services.AddDbContextPool<HomeSurveillanceDBContext>(o => o.UseMySql(mySqlConnectionStr, MariaDbServerVersion.AutoDetect(mySqlConnectionStr)));
             
@@ -51,10 +52,9 @@ namespace HomeSurveillanceApp
             .AddJwtBearer(options =>
              {
                  options.SaveToken = true;
-                 options.RequireHttpsMetadata = false;
+                 options.RequireHttpsMetadata = true;
                  options.TokenValidationParameters = new TokenValidationParameters()
                  {
-
                      ValidateIssuer = true,
                      ValidateAudience = true,
                      ValidAudience = Configuration["JwtConfig:ValidAudience"],

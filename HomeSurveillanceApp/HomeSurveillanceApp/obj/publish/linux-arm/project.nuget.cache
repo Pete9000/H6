@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "w8kfylEPN/6IRePc4y39HV4PTrwaBXMCS7v30UHYwtx2LjwuaO2xhKbdHtSvFRl3UJLqE04wWuebBoSzH8suYw==",
+  "dgSpecHash": "kPq7jDpe+YTpXE1KrUZ6DsnMjqOPkXdoL6aQombX9ssV+mb+48lCWqn9bBBIruUviaptYLactMjPaDTrornMPg==",
   "success": true,
   "projectFilePath": "C:\\Users\\Peter\\Desktop\\H6\\Svendeprøve\\Projekt\\HomeSurveillanceApp\\HomeSurveillanceApp\\HomeSurveillanceApp.csproj",
   "expectedPackageFiles": [
@@ -28,12 +28,12 @@
     "C:\\Users\\Peter\\.nuget\\packages\\microsoft.entityframeworkcore\\5.0.3\\microsoft.entityframeworkcore.5.0.3.nupkg.sha512",
     "C:\\Users\\Peter\\.nuget\\packages\\microsoft.entityframeworkcore.abstractions\\5.0.3\\microsoft.entityframeworkcore.abstractions.5.0.3.nupkg.sha512",
     "C:\\Users\\Peter\\.nuget\\packages\\microsoft.entityframeworkcore.analyzers\\5.0.3\\microsoft.entityframeworkcore.analyzers.5.0.3.nupkg.sha512",
-    "C:\\Users\\Peter\\.nuget\\packages\\microsoft.entityframeworkcore.design\\5.0.2\\microsoft.entityframeworkcore.design.5.0.2.nupkg.sha512",
+    "C:\\Users\\Peter\\.nuget\\packages\\microsoft.entityframeworkcore.design\\5.0.3\\microsoft.entityframeworkcore.design.5.0.3.nupkg.sha512",
     "C:\\Users\\Peter\\.nuget\\packages\\microsoft.entityframeworkcore.relational\\5.0.3\\microsoft.entityframeworkcore.relational.5.0.3.nupkg.sha512",
     "C:\\Users\\Peter\\.nuget\\packages\\microsoft.entityframeworkcore.sqlite\\5.0.2\\microsoft.entityframeworkcore.sqlite.5.0.2.nupkg.sha512",
     "C:\\Users\\Peter\\.nuget\\packages\\microsoft.entityframeworkcore.sqlite.core\\5.0.2\\microsoft.entityframeworkcore.sqlite.core.5.0.2.nupkg.sha512",
     "C:\\Users\\Peter\\.nuget\\packages\\microsoft.entityframeworkcore.sqlserver\\5.0.2\\microsoft.entityframeworkcore.sqlserver.5.0.2.nupkg.sha512",
-    "C:\\Users\\Peter\\.nuget\\packages\\microsoft.entityframeworkcore.tools\\5.0.2\\microsoft.entityframeworkcore.tools.5.0.2.nupkg.sha512",
+    "C:\\Users\\Peter\\.nuget\\packages\\microsoft.entityframeworkcore.tools\\5.0.3\\microsoft.entityframeworkcore.tools.5.0.3.nupkg.sha512",
     "C:\\Users\\Peter\\.nuget\\packages\\microsoft.extensions.caching.abstractions\\5.0.0\\microsoft.extensions.caching.abstractions.5.0.0.nupkg.sha512",
     "C:\\Users\\Peter\\.nuget\\packages\\microsoft.extensions.caching.memory\\5.0.0\\microsoft.extensions.caching.memory.5.0.0.nupkg.sha512",
     "C:\\Users\\Peter\\.nuget\\packages\\microsoft.extensions.configuration.abstractions\\5.0.0\\microsoft.extensions.configuration.abstractions.5.0.0.nupkg.sha512",

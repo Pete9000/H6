@@ -19,13 +19,15 @@ namespace HomeSurveillanceApp.Controllers.API
     [ApiController]
     public class AuthenticateController : ControllerBase
     {
-        private readonly UserManager<User> userManager;
+        private readonly UserManager<User> _userManager;
+        private readonly RoleManager<IdentityRole> _roleManager;
         private readonly IConfiguration _configuration;
 
-        public AuthenticateController(UserManager<User> userManager, IConfiguration configuration)
+        public AuthenticateController(UserManager<User> userManager, RoleManager<IdentityRole> roleManager, IConfiguration configuration)
         {
-            this.userManager = userManager;
+            _userManager = userManager;
             _configuration = configuration;
+            _roleManager = roleManager;
         }
 
         [AllowAnonymous]
@@ -33,14 +35,23 @@ namespace HomeSurveillanceApp.Controllers.API
         [Route("Login")]
         public async Task<IActionResult> Login([FromBody] Authentication authModel)
         {
-            var user = await userManager.FindByNameAsync(authModel.Username);
-            if (user != null && await userManager.CheckPasswordAsync(user, authModel.Password))
+            var user = await _userManager.FindByNameAsync(authModel.Username);
+            if (user != null && await _userManager.CheckPasswordAsync(user, authModel.Password))
             {
+
+                var userRoles = await _userManager.GetRolesAsync(user);
+
                 var authClaims = new List<Claim>
                 {
                     new Claim(ClaimTypes.Name, user.UserName),
                     new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
                 };
+
+                foreach (var userRole in userRoles)
+                {
+                    authClaims.Add(new Claim(ClaimTypes.Role, userRole));
+                }
+
                 double minutes = Convert.ToDouble(_configuration["JwtConfig:ExpirationInMinutes"]);
                 var authSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["JwtConfig:Secret"]));
                 var token = new JwtSecurityToken(

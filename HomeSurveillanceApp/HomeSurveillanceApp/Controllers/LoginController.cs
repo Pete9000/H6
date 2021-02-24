@@ -76,7 +76,6 @@ namespace HomeSurveillanceApp.Controllers
         public IActionResult Register()
         {
             ViewBag.Roles = _roleManager.Roles.Select(x => x.Name).ToList();
-            //ViewData["roles"] = _roleManager.Roles.Select(x=>x.Name).ToList();
             return View();
         }
 
@@ -104,7 +103,6 @@ namespace HomeSurveillanceApp.Controllers
                 return View();
             }
             return StatusCode(StatusCodes.Status500InternalServerError, new Response { Status = "Error", Message = "User creation failed! Password must have atleast 1 Uppercase and 1 special character" });
-
         }
 
         public IActionResult Logout()
@@ -115,7 +113,8 @@ namespace HomeSurveillanceApp.Controllers
 
         void SetCookie(string key, string value, int? expiration)
         {
-            CookieOptions option = new CookieOptions();
+            //set http only to remove access from client side javascript
+            CookieOptions option = new CookieOptions { HttpOnly = true};
             if (expiration.HasValue)
                 option.Expires = DateTime.Now.AddMinutes(expiration.Value);
             else
