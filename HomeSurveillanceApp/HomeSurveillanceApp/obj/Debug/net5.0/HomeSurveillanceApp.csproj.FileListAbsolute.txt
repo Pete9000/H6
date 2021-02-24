@@ -334,7 +334,6 @@ C:\Users\Peter\Desktop\H6\Svendeprøve\Projekt\HomeSurveillanceApp\HomeSurveilla
 C:\Users\Peter\Desktop\H6\Svendeprøve\Projekt\HomeSurveillanceApp\HomeSurveillanceApp\obj\Debug\net5.0\HomeSurveillanceApp.csproj.CopyComplete
 C:\Users\Peter\Desktop\H6\Svendeprøve\Projekt\HomeSurveillanceApp\HomeSurveillanceApp\obj\Debug\net5.0\HomeSurveillanceApp.genruntimeconfig.cache
 C:\Users\Peter\Desktop\H6\Svendeprøve\Projekt\HomeSurveillanceApp\HomeSurveillanceApp\obj\Debug\net5.0\Razor\Views\Login\Register.cshtml.g.cs
-C:\Users\Peter\Desktop\H6\Svendeprøve\Projekt\HomeSurveillanceApp\HomeSurveillanceApp\obj\Debug\net5.0\HomeSurveillanceApp.csprojAssemblyReference.cache
 C:\Users\Peter\Desktop\H6\Svendeprøve\Projekt\HomeSurveillanceApp\HomeSurveillanceApp\bin\Debug\net5.0\Microsoft.Data.Sqlite.dll
 C:\Users\Peter\Desktop\H6\Svendeprøve\Projekt\HomeSurveillanceApp\HomeSurveillanceApp\bin\Debug\net5.0\Microsoft.DotNet.PlatformAbstractions.dll
 C:\Users\Peter\Desktop\H6\Svendeprøve\Projekt\HomeSurveillanceApp\HomeSurveillanceApp\bin\Debug\net5.0\Microsoft.EntityFrameworkCore.Sqlite.dll
